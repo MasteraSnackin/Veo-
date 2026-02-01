@@ -75,8 +75,14 @@ export async function POST(request: NextRequest) {
           timeout: 60000 // 60 seconds
         })
 
-        // Parse JSON output
-        const jsonOutput = JSON.parse(result.stdout)
+        // Parse JSON output - strip out log lines that start with [ INFO], [CACHE], etc.
+        const stdout = result.stdout
+        const jsonLines = stdout.split('\n').filter(line =>
+          !line.trim().startsWith('[') && line.trim().length > 0
+        )
+        const jsonString = jsonLines.join('\n')
+
+        const jsonOutput = JSON.parse(jsonString)
         return jsonOutput.data.recommendations
       },
       CacheTTL.RECOMMENDATIONS
