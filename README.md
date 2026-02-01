@@ -9,11 +9,13 @@
 ![Tests](https://img.shields.io/badge/tests-54%20passed-brightgreen)
 ![License](https://img.shields.io/badge/license-MIT-blue)
 
-## 🎥 Video Demo
-
+## 🎥 Video generated reports
+# Version1
 https://github.com/user-attachments/assets/53a96134-f4ee-4d52-84e5-1251677074c3
+# Version34
 
-**Additional Video Output**: [View Video Output Documentation](https://github.com/MasteraSnackin/Veo-/blob/main/video/output.md)
+https://github.com/user-attachments/assets/7346e71d-2e66-434b-ae4a-7d3294b8ea75
+### Gotta love the cracked-back case on the mobile – typical London student phone.
 
 
 ## 📸 UI Screenshots
