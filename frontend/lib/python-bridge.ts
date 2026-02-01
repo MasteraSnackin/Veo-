@@ -1,6 +1,13 @@
 /**
  * Python Bridge - Clean interface for executing Python scripts
+ * Supports both local execution and Modal serverless functions
+ * 
  * Handles process spawning, timeout, error handling, and output parsing
+ * 
+ * Environment Variables:
+ * - PYTHON_COMMAND: Local Python command (default: 'python')
+ * - MODAL_ENDPOINT_URL: Modal serverless function URL (optional)
+ * - USE_MODAL: 'true' to use Modal instead of local execution
  */
 
 import { spawn } from 'child_process'
@@ -11,13 +18,94 @@ import type { PythonScriptOptions, PythonScriptResult } from './types'
 
 const DEFAULT_TIMEOUT = 30000 // 30 seconds
 const PYTHON_COMMAND = process.env.PYTHON_COMMAND || 'python'
+const MODAL_ENDPOINT_URL = process.env.MODAL_ENDPOINT_URL
+const USE_MODAL = process.env.USE_MODAL === 'true'
+
+/**
+ * Executes Python script via Modal HTTP endpoint
+ */
+async function executeViaModal(
+  options: PythonScriptOptions
+): Promise<PythonScriptResult> {
+  const { script, args, timeout = DEFAULT_TIMEOUT } = options
+  const startTime = Date.now()
+
+  const scriptLogger = logger.child({
+    operation: 'modal_execution',
+    script: path.basename(script)
+  })
+
+  if (!MODAL_ENDPOINT_URL) {
+    throw new PythonExecutionError('Modal endpoint not configured')
+  }
+
+  scriptLogger.debug('Starting Modal execution', { args })
+
+  try {
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), timeout)
+
+    const response = await fetch(MODAL_ENDPOINT_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        script: path.basename(script),
+        args
+      }),
+      signal: controller.signal
+    })
+
+    clearTimeout(timeoutId)
+
+    if (!response.ok) {
+      const errorText = await response.text()
+      throw new PythonExecutionError(
+        `Modal execution failed: ${response.status} ${response.statusText}`,
+        { stderr: errorText, exitCode: response.status }
+      )
+    }
+
+    const result = await response.json()
+    const executionTime = Date.now() - startTime
+
+    scriptLogger.info('Modal execution completed', { executionTime })
+
+    return {
+      stdout: result.stdout || JSON.stringify(result),
+      stderr: result.stderr || '',
+      exitCode: 0,
+      executionTime
+    }
+  } catch (error) {
+    if (error instanceof Error && error.name === 'AbortError') {
+      throw new TimeoutError('Modal execution', timeout)
+    }
+    throw error
+  }
+}
 
 /**
  * Executes a Python script and returns structured result
+ * Uses Modal if configured, otherwise falls back to local execution
  */
 export async function executePythonScript(
   options: PythonScriptOptions
 ): Promise<PythonScriptResult> {
+  // Use Modal if enabled and configured
+  if (USE_MODAL && MODAL_ENDPOINT_URL) {
+    try {
+      return await executeViaModal(options)
+    } catch (error) {
+      logger.warn('Modal execution failed, falling back to local', {
+        error: error instanceof Error ? error.message : 'Unknown error'
+      })
+      // Fall through to local execution
+    }
+  }
+
+  // Local Python execution
   const { script, args, timeout = DEFAULT_TIMEOUT, cwd } = options
   const startTime = Date.now()
 

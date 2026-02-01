@@ -15,9 +15,9 @@ export const PERSONA_CONFIGS: Record<Persona, PersonaConfig> = {
       schools: 0.05,
       amenities: 0.15,
       property_prices: 0.05,
-      nightlife: 0.20,
+      nightlife: 0.15,           // Reduced from 0.20
       green_spaces: 0.05,
-      affordability: 0.30
+      affordability: 0.25        // Reduced from 0.30
     },
     priorities: [
       'Affordable rent',
@@ -33,14 +33,14 @@ export const PERSONA_CONFIGS: Record<Persona, PersonaConfig> = {
     displayName: 'Parent',
     description: 'Family-friendly areas with excellent schools and safety',
     weights: {
-      safety: 0.30,
+      safety: 0.25,              // Reduced from 0.30
       commute: 0.10,
       schools: 0.30,
       amenities: 0.10,
       property_prices: 0.05,
       nightlife: 0.00,
       green_spaces: 0.15,
-      affordability: 0.20
+      affordability: 0.05        // Reduced from 0.20
     },
     priorities: [
       'Outstanding schools nearby',
@@ -58,13 +58,13 @@ export const PERSONA_CONFIGS: Record<Persona, PersonaConfig> = {
     weights: {
       safety: 0.10,
       commute: 0.15,
-      schools: 0.10,
+      schools: 0.05,            // Reduced from 0.10
       amenities: 0.15,
       property_prices: 0.20,
       nightlife: 0.05,
       green_spaces: 0.05,
       affordability: 0.00,
-      development: 0.20
+      development: 0.25         // Increased from 0.20
     },
     priorities: [
       'High development potential',
