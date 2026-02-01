@@ -33,6 +33,8 @@ Configure your search preferences including budget (£1,000/month), location (UC
 ### Results Overview
 View your personalized "Perfect Areas" with detailed scoring breakdowns showing affordability (75), commute (82), safety (30), and amenities (30).
 
+![Perfect Areas Results](https://github.com/user-attachments/assets/89cd4e6f-8c35-4a8e-9e5e-4d0f9c0e7b3a)
+
 ![Results Overview - Whitechapel](audit_screenshots/03_results_page.png)
 ### Persona Selection
 Choose your persona type - Student, Parent, or Developer - each with tailored recommendations based on your lifestyle needs.
