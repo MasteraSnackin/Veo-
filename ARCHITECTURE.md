@@ -10,9 +10,11 @@ The primary goal of the system is to automate the complex process of location re
 
 ### Functional
 - **Persona-Driven Recommendations**: Tailor results based on specific user profiles and priorities.
-- **Multi-Source Data Enrichment**: Integrate data from ScanSan, TfL, UK Police, and Ofsted APIs.
+- **Multi-Source Data Enrichment**: Integrate data from 8+ sources: ScanSan, TfL, UK Police, Ofsted, Google Maps, Perplexity AI, ONS Geography, and amenities databases.
 - **Natural Language Generation**: Provide human-readable explanations for all recommendations.
-- **Multimedia Output**: Generate AI video explainers for top-ranked areas.
+- **Multimedia Output**: Generate AI video explainers with Google Maps imagery for top-ranked areas.
+- **Real-Time Research**: Fetch current area news and development updates via Perplexity AI.
+- **Geographic Visualization**: Provide GeoJSON boundary data for mapping integrations.
 
 ### Non-Functional
 - **Scalability**: Handle concurrent API requests and data processing for multiple users.
@@ -41,20 +43,29 @@ Markdown SOPs]
         Orchestrator --> Crime[crime_data.py]
         Orchestrator --> Schools[schools_ofsted.py]
         Orchestrator --> Video[generate_video.py]
+        Orchestrator --> Maps[fetch_google_maps.py]
+        Orchestrator --> Research[fetch_perplexity.py]
+        Orchestrator --> Boundaries[fetch_ons_boundaries.py]
     end
-    
+
     subgraph "External Services"
         ScanSan --> ScanSanAPI[ScanSan Property API]
         TfL --> TfLAPI[TfL Unified API]
         Crime --> PoliceAPI[UK Police Data API]
         Schools --> GIAS[GIAS / Ofsted API]
         Video --> VideoAI[Veo / Sora / LTX]
+        Maps --> MapsAPI[Google Maps API]
+        Research --> PerplexityAPI[Perplexity AI API]
+        Boundaries --> ONSAPI[ONS Open Geography API]
     end
     
     ScanSanAPI --> Cache[(Redis Cache)]
     TfLAPI --> Cache
     PoliceAPI --> Cache
     GIAS --> Cache
+    MapsAPI --> Cache
+    PerplexityAPI --> Cache
+    ONSAPI --> Cache
 ```
 
 *This diagram illustrates the flow from a user request through the intelligent orchestration layer to the deterministic execution workers and external data providers.*
@@ -81,7 +92,10 @@ Markdown SOPs]
 - **TfL API**: Calculates precise commute times to specific destinations.
 - **UK Police API**: Fetches localized crime statistics and safety ratings.
 - **GIAS/Ofsted**: Provides school performance data and catchment area information.
-- - **Climate & Weather API**: Provides climate data, weather patterns, and environmental quality metrics for area assessment.
+- **Google Maps API**: Geocoding, static map generation, nearby places search, and distance calculations.
+- **Perplexity AI API**: Real-time area research, development news, and persona-specific insights with citations.
+- **ONS Open Geography API**: Official UK administrative boundary data in GeoJSON format (LSOA, MSOA, Ward, District).
+- **Climate & Weather API**: Provides climate data, weather patterns, and environmental quality metrics for area assessment *(planned)*.
 
 ```mermaid
 flowchart LR
@@ -99,14 +113,20 @@ flowchart LR
         CRIME[Crime Data Script]
         SCHOOL[Schools Script]
         VIDEO[Video Generator]
+        MAPS[Maps Script]
+        RESEARCH[Research Script]
+        BOUNDS[Boundaries Script]
     end
-    
+
     subgraph "External APIs"
         API_SCAN[ScanSan API]
         API_TFL[TfL API]
         API_POLICE[Police API]
         API_GIAS[GIAS/Ofsted]
         API_VIDEO[Video AI]
+        API_MAPS[Google Maps API]
+        API_PERP[Perplexity AI]
+        API_ONS[ONS Geography]
     end
     
     CACHE[(Redis Cache)]
@@ -119,24 +139,36 @@ flowchart LR
     ORCH -->|Invoke| CRIME
     ORCH -->|Invoke| SCHOOL
     ORCH -->|Invoke| VIDEO
-    
+    ORCH -->|Invoke| MAPS
+    ORCH -->|Invoke| RESEARCH
+    ORCH -->|Invoke| BOUNDS
+
     SCAN <-->|Check/Store| CACHE
     TFL <-->|Check/Store| CACHE
     CRIME <-->|Check/Store| CACHE
     SCHOOL <-->|Check/Store| CACHE
-    
+    MAPS <-->|Check/Store| CACHE
+    RESEARCH <-->|Check/Store| CACHE
+    BOUNDS <-->|Check/Store| CACHE
+
     SCAN -->|Fetch Data| API_SCAN
     TFL -->|Fetch Data| API_TFL
     CRIME -->|Fetch Data| API_POLICE
     SCHOOL -->|Fetch Data| API_GIAS
     VIDEO -->|Generate| API_VIDEO
+    MAPS -->|Fetch Data| API_MAPS
+    RESEARCH -->|Fetch Data| API_PERP
+    BOUNDS -->|Fetch Data| API_ONS
     
     SCAN -->|Return JSON| ORCH
     TFL -->|Return JSON| ORCH
     CRIME -->|Return JSON| ORCH
     SCHOOL -->|Return JSON| ORCH
     VIDEO -->|Return Video URL| ORCH
-    
+    MAPS -->|Return JSON| ORCH
+    RESEARCH -->|Return JSON| ORCH
+    BOUNDS -->|Return GeoJSON| ORCH
+
     ORCH -->|Synthesize<br/>& Rank| UI
 ```
 
@@ -145,10 +177,20 @@ flowchart LR
 ### Typical Recommendation Flow
 1. **Request**: User provides persona (e.g., "Student") and preferences (Budget, Destination).
 2. **Orchestration**: The Orchestrator reads `MASTER_ORCHESTRATION.md` to determine the workflow.
-3. **Fetching**: The Orchestrator triggers Layer 3 scripts in parallel to fetch data from ScanSan, TfL, and Crime APIs.
-4. **Scoring**: Data is passed to the Scoring Engine which applies weights defined in the persona directives.
-5. **Synthesis**: Results are ranked, and the Explainer Generator creates a natural language summary.
-6. **Delivery**: The final ranked list and explanations are returned to the user.
+3. **Fetching**: The Orchestrator triggers 6-8 Layer 3 scripts in parallel to fetch data from:
+   - ScanSan (property intelligence)
+   - TfL (commute times)
+   - UK Police (crime statistics)
+   - Ofsted (school ratings)
+   - Google Maps (geocoding, nearby places)
+   - Perplexity AI (real-time area research)
+   - ONS Geography (boundary data)
+4. **Caching**: Redis checks for cached results with multi-tier TTL (1hr-90 days).
+5. **Scoring**: Data is passed to the Scoring Engine which applies weights defined in the persona directives.
+6. **Enrichment**: Google Maps imagery, Perplexity insights, and ONS boundaries added to recommendations.
+7. **Synthesis**: Results are ranked, and the Explainer Generator creates a natural language summary.
+8. **Optional Video**: AI-generated video explainer with maps on user demand.
+9. **Delivery**: The final ranked list with comprehensive data and explanations is returned to the user.
 
 ```mermaid
 sequenceDiagram
@@ -252,6 +294,9 @@ graph TB
         Ofsted[GIAS/Ofsted API]
         Claude[Anthropic Claude]
         Video[Video AI Services]
+        Maps[Google Maps API]
+        Perplexity[Perplexity AI]
+        ONS[ONS Open Geography]
     end
     
     Users[Users] --> LB
@@ -272,10 +317,15 @@ graph TB
     W1 --> Police
     W2 --> Ofsted
     W2 --> Video
-    
+    W1 --> Maps
+    W2 --> Perplexity
+    W1 --> ONS
+
     API1 --> Claude
     API2 --> Claude
     API3 --> Claude
+    API1 --> Perplexity
+    API2 --> Perplexity
     
     API1 -.-> Secrets
     API2 -.-> Secrets
@@ -310,8 +360,32 @@ graph TB
 - **LLM vs. Hardcoded Logic**: We chose LLM orchestration to allow for flexible, natural language interactions and easier system updates via Markdown, at the cost of slight latency and token expenses.
 - ** Postcode District vs. Full Postcode**: Data is aggregated at the district level (e.g., E1) to ensure high cache hit rates and comply with data privacy while remaining useful for area-level recommendations.
 
+## Recent Enhancements (Phase 3 - 2026-02-01)
+
+### Google Maps Integration
+- **Geocoding**: Convert area codes to precise coordinates
+- **Static Maps**: Generate map images with custom markers
+- **Nearby Places**: Search for amenities (cafes, gyms, schools, transport)
+- **Distance Matrix**: Calculate distances between locations
+- **Cache**: 24-hour TTL for map data
+
+### Perplexity AI Research
+- **Real-Time Insights**: Current area developments and news
+- **Persona-Specific**: Tailored research for students, parents, developers
+- **Citation Tracking**: Source attribution for all claims
+- **UK-Focused**: Search limited to recent UK sources
+- **Cache**: 6-hour TTL for freshness
+
+### ONS Open Geography Boundaries
+- **GeoJSON Format**: Ready for mapping libraries (Leaflet, Mapbox, Google Maps)
+- **Hierarchical Data**: LSOA → MSOA → Ward → District
+- **Simple & Full Modes**: Balance between speed and detail
+- **Free API**: No API key required (uses postcodes.io)
+- **Cache**: 90-day TTL (boundaries rarely change)
+
 ## Future Improvements
 
-- **Real-time Market Data**: Integrating live property listings to show current availability.
+- **Real-time Market Data**: Integrating live property listings from Rightmove/Zoopla to show current availability.
 - **Feedback Loop**: Implementing a reinforcement learning layer to improve recommendation accuracy based on user interactions.
-- **Geo-Spatial Visualisation**: Adding a full map interface to the front-end for better area comparison.
+- **Interactive Map UI**: Adding a full map interface to the front-end with boundary overlays for better area comparison.
+- **Climate Data**: Integration with climate and weather APIs for sustainability scoring *(planned)*.

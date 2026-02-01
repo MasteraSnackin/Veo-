@@ -155,6 +155,7 @@ export const CacheTTL = {
   CRIME: 30 * 24 * 60 * 60,     // 30 days
   SCHOOLS: 90 * 24 * 60 * 60,   // 90 days
   RECOMMENDATIONS: 60 * 60,      // 1 hour
+  SIX_HOURS: 6 * 60 * 60,       // 6 hours (for real-time data)
   HEALTH_CHECK: 60,              // 1 minute
 } as const
 
