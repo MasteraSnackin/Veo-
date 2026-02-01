@@ -13,6 +13,33 @@
 
 https://github.com/user-attachments/assets/53a96134-f4ee-4d52-84e5-1251677074c3
 
+
+## 📸 UI Screenshots
+
+Explore the intuitive interface of Veo's AI-powered housing recommendation platform.
+
+### Home Screen - Initial Setup
+The main interface where users select their persona (Student, Parent, or Developer) and configure their housing preferences.
+
+![Home Screen - Initial Setup](audit_screenshots/qc_01_homepage_initial.png)
+### Search Configuration
+Configure your search preferences including budget (£1,000/month), location (UCL), looking to rent, and number of recommendations (5).
+
+![Search Configuration](audit_screenshots/qc_02_form_complete.png)
+### Results Overview
+View your personalized "Perfect Areas" with detailed scoring breakdowns showing affordability (75), commute (82), safety (30), and amenities (30).
+
+![Results Overview - Whitechapel](audit_screenshots/03_results_page.png)
+### Persona Selection
+Choose your persona type - Student, Parent, or Developer - each with tailored recommendations based on your lifestyle needs.
+
+![Persona Selection](audit_screenshots/qc_01_homepage_initial.png)
+### Full Results View
+Comprehensive view showing top area recommendations with all factor scores visible at a glance.
+
+![Full Results View](audit_screenshots/03_results_page.png)
+
+
 ## 📋 Table of Contents
 
 - [Description](#description)
