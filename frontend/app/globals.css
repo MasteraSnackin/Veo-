@@ -1,0 +1,236 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --foreground-rgb: 15, 23, 42;
+    --background-start-rgb: 255, 255, 255;
+    --background-end-rgb: 248, 250, 252;
+  }
+
+  body {
+    color: rgb(var(--foreground-rgb));
+    background: linear-gradient(to bottom,
+        transparent,
+        rgb(var(--background-end-rgb))) rgb(var(--background-start-rgb));
+    font-feature-settings: 'cv11', 'ss01';
+    font-variation-settings: 'opsz' 32;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+@layer components {
+
+  /* Glassmorphism Card */
+  .glass-card {
+    @apply backdrop-blur-xl bg-white/10 border border-white/20 shadow-glass rounded-3xl;
+  }
+
+  .glass-card-lg {
+    @apply backdrop-blur-2xl bg-white/20 border border-white/30 shadow-glass-lg rounded-4xl;
+  }
+
+  /* Dark Glass Variant */
+  .glass-dark {
+    @apply backdrop-blur-xl bg-black/10 border border-black/20 shadow-glass;
+  }
+
+  /* Bento Grid */
+  .bento-grid {
+    @apply grid gap-4 md:gap-6;
+  }
+
+  /* Gradient Text */
+  .gradient-text {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-primary-500 via-accent-purple to-accent-pink;
+  }
+
+  /* Hover Glow Effect */
+  .hover-glow {
+    @apply transition-all duration-300 ease-in-out;
+  }
+
+  .hover-glow:hover {
+    @apply shadow-neon scale-105;
+  }
+
+  /* Interactive Card */
+  .interactive-card {
+    @apply transform transition-all duration-300 ease-out;
+    @apply hover:scale-[1.02] hover:shadow-2xl hover:-translate-y-1;
+  }
+
+  /* Shimmer Effect */
+  .shimmer {
+    @apply relative overflow-hidden;
+  }
+
+  .shimmer::before {
+    content: '';
+    @apply absolute inset-0 -translate-x-full;
+    background: linear-gradient(90deg,
+        transparent,
+        rgba(255, 255, 255, 0.2),
+        transparent);
+    animation: shimmer 2s infinite;
+  }
+
+  /* Floating Animation */
+  .floating {
+    @apply animate-float;
+  }
+
+  /* Gradient Mesh Background */
+  .mesh-background {
+    @apply bg-gradient-mesh;
+    background-size: 200% 200%;
+    animation: gradient 15s ease infinite;
+  }
+
+  @keyframes gradient {
+    0% {
+      background-position: 0% 50%;
+    }
+
+    50% {
+      background-position: 100% 50%;
+    }
+
+    100% {
+      background-position: 0% 50%;
+    }
+  }
+
+  /* Focus Styles */
+  .focus-ring {
+    @apply focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 focus:ring-offset-white;
+  }
+
+  /* Button Variants */
+  .btn-primary {
+    @apply px-6 py-3 rounded-xl font-semibold text-white bg-gradient-to-r from-primary-600 to-primary-500;
+    @apply hover:from-primary-700 hover:to-primary-600 transition-all duration-200;
+    @apply shadow-lg hover:shadow-xl active:scale-95;
+    @apply focus-ring;
+  }
+
+  .btn-glass {
+    @apply px-6 py-3 rounded-xl font-semibold glass-card;
+    @apply hover:bg-white/30 transition-all duration-200;
+    @apply active:scale-95 focus-ring;
+  }
+
+  /* Input Styles */
+  .input-glass {
+    @apply w-full px-4 py-3 rounded-xl glass-card;
+    @apply focus:bg-white/20 focus:border-white/40 transition-all duration-200;
+    @apply placeholder:text-gray-400 focus-ring;
+  }
+}
+
+@layer utilities {
+
+  /* Custom Backdrop Blur */
+  .backdrop-blur-xs {
+    backdrop-filter: blur(2px);
+  }
+
+  /* Text Balance */
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  /* Hide Scrollbar */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Smooth Transitions */
+  .transition-smooth {
+    @apply transition-all duration-300 ease-out;
+  }
+}
+
+/* Print Stylesheet for PDF Export */
+@media print {
+
+  /* Hide elements that shouldn't print */
+  nav,
+  aside,
+  .no-print,
+  button {
+    display: none !important;
+  }
+
+  /* Remove backgrounds for better printing */
+  body {
+    background: white !important;
+  }
+
+  /* Ensure content is visible */
+  .glass-card,
+  .glass-card-lg {
+    background: white !important;
+    border: 1px solid #e5e7eb !important;
+    box-shadow: none !important;
+    backdrop-filter: none !important;
+  }
+
+  /* Optimize page breaks */
+  .glass-card,
+  .glass-card-lg {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  h1,
+  h2,
+  h3 {
+    page-break-after: avoid;
+    break-after: avoid;
+  }
+
+  /* Show links */
+  a[href]:after {
+    content: " (" attr(href) ")";
+    font-size: 0.8em;
+    color: #666;
+  }
+
+  /* Adjust colors for print */
+  * {
+    color: black !important;
+    background: transparent !important;
+  }
+
+  /* Ensure charts and progress circles print */
+  svg {
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
+  /* Show all content (remove max-heights) */
+  * {
+    max-height: none !important;
+    overflow: visible !important;
+  }
+
+  /* Adjust margins for print */
+  @page {
+    margin: 1cm;
+  }
+
+  body {
+    margin: 0;
+    padding: 1cm;
+  }
+}
